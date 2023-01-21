@@ -19,24 +19,32 @@ ENV \
 WORKDIR /app
 
 COPY pyproject.toml poetry.lock ./
-COPY src/ src/
 
 RUN \
     curl -sSL https://install.python-poetry.org | python && \
-    ${POETRY_HOME}/bin/poetry install --only main
+    ${POETRY_HOME}/bin/poetry install --no-root --only main
 
 FROM builder as development
 
 WORKDIR /app
 
+COPY src/ src
 COPY tests/ tests/
 RUN ${POETRY_HOME}/bin/poetry install --with dev
 
 
-FROM python:3.10-slim-bullseye
+FROM python:3.10-slim-bullseye as production
+
+WORKDIR / app
+
+RUN \
+    apt-get update && \
+    apt-get install -y curl && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /usr/local/bin/gunicorn /usr/local/bin/gunicorn
 COPY --from=builder /usr/local/lib/python3.10/site-packages /usr/local/lib/python3.10/site-packages
-COPY src/fastapi_simple_template/gunicorn.conf.py gunicorn.conf.py
+COPY src/ src/
 
-CMD ["gunicorn", "-c", "gunicorn.conf.py"]
+CMD ["gunicorn", "-c", "src/fastapi_simple_template/gunicorn.conf.py"]
