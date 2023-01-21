@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, PlainTextResponse
 
 title = "FastAPI Simple Templete"
 version = "2023.01.21.0"
@@ -15,3 +15,8 @@ def root() -> HTMLResponse:
         <a href=\"redoc\">redoc</a> / <a href=\"docs\">docs</a>
         """
     )
+
+
+@app.get("/health", response_class=PlainTextResponse)
+async def healthcheck() -> PlainTextResponse:
+    return PlainTextResponse("OK")
