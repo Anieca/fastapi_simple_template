@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse, PlainTextResponse
 
+from fastapi_simple_template.routers import router
+
 title = "FastAPI Simple Templete"
 version = "2023.01.21.0"
 
@@ -18,5 +20,8 @@ def root() -> HTMLResponse:
 
 
 @app.get("/health", response_class=PlainTextResponse)
-async def healthcheck() -> PlainTextResponse:
+def health() -> PlainTextResponse:
     return PlainTextResponse("OK")
+
+
+app.include_router(router)
