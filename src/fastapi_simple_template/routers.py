@@ -11,7 +11,8 @@ router = APIRouter()
 @router.post("/capitalize", response_model=TextResponse, summary="capitalize text")
 @inject
 def capitalize(
-    text_request: TextRequest, service: ITextOperationService = Depends(Provide[Container.text_operation_service])
+    text_request: TextRequest,
+    service: ITextOperationService = Depends(Provide[Container.text_operation_service]),
 ) -> TextResponse:
     capitalized_text = service.capitalize(text_request.text)
     return TextResponse(text=capitalized_text)
