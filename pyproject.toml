@@ -38,6 +38,17 @@ ignore_missing_imports = true
 testpaths = [
     "tests/"
 ]
+markers = [
+    "integration",
+]
+addopts = [
+    "--cov",
+    "src",
+    "--cov-report",
+    "term-missing",
+    "-m",
+    "not integration"
+]
 
 [build-system]
 requires = ["poetry-core"]
