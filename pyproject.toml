@@ -11,6 +11,7 @@ fastapi = "^0.89.1"
 uvicorn = {version = "^0.20.0", extras = ["standard"]}
 gunicorn = "^20.1.0"
 dependency-injector = "^4.41.0"
+httpx = "^0.23.3"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -22,6 +23,7 @@ mypy = "^0.991"
 pytest = "^7.2.1"
 pytest-mock = "^3.10.0"
 pre-commit = "^2.21.0"
+pytest-cov = "^4.0.0"
 
 [tool.black]
 line_length = 120
