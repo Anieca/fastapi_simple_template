@@ -24,7 +24,7 @@ RUN \
     curl -sSL https://install.python-poetry.org | python && \
     ${POETRY_HOME}/bin/poetry install --no-root --only main
 
-FROM builder as development
+FROM builder as testing
 
 WORKDIR /app
 
@@ -32,6 +32,7 @@ COPY src/ src
 COPY tests/ tests/
 RUN ${POETRY_HOME}/bin/poetry install --with dev
 
+ENTRYPOINT ["pytest"]
 
 FROM python:3.10-slim-bullseye as production
 
