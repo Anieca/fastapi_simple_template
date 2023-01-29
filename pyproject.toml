@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "fastapi-simple-template"
-version = "2023.01.21.0"
+version = "2023.01.29.0"
 description = "This project is a simple fastapi webserver template."
 authors = ["ryo.ishii <ryoishii1101@gmail.com>"]
 packages = [{include = "fastapi_simple_template", from = "src"}]
