@@ -1,0 +1,116 @@
+name: lint, format, test
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+  issues: read
+  checks: write
+  pull-requests: write
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10"]
+      fail-fast: false
+    steps:
+    - name: checkout
+      uses: actions/checkout@v3
+
+    - name: setup python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: get full python version
+      id: full-python-version
+      run: echo "version=$(python -c 'import sys; print("-".join(str(v) for v in sys.version_info))')" >> $GITHUB_OUTPUT
+
+    - name: install poetry
+      run: curl -sL https://install.python-poetry.org | python3
+
+    - name: update path
+      run: echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+    - name: configure poetry
+      run: poetry config virtualenvs.in-project true
+
+    - name: setup cache
+      uses: actions/cache@v3
+      id: cache
+      with:
+        path: .venv
+        key: venv-${{ runner.os }}-${{ steps.full-python-version.outputs.version }}-${{ hashFiles('**/poetry.lock') }}
+
+    - name: ensure cache is healthy
+      if: steps.cache.outputs.cache-hit == 'true'
+      run: timeout 10s poetry run pip --version || rm -rf .venv
+
+    - name: install dependencies
+      run: poetry install
+
+    - name: setup reviewdog
+      uses: reviewdog/action-setup@v1
+
+    - name: flake8
+      env:
+        REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        poetry run flake8 . 2>&1 | reviewdog \
+          -f=flake8 \
+          -name="flake8" \
+          -reporter=github-pr-review \
+          -filter-mode=file \
+          -fail-on-error=false \
+          -level=warning
+
+    - name: black
+      env:
+        REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        poetry run black --diff --check . 2>&1 | reviewdog \
+          -f=diff \
+          -f.diff.strip=0 \
+          -name="black" \
+          -reporter=github-pr-review \
+          -filter-mode=file \
+          -fail-on-error=false \
+          -level=warning
+
+    - name: isort
+      env:
+        REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        poetry run isort --diff --check . | sed -e 's/\(---.*\):before\(.*\)/\1\2/g' -e 's/\(+++.*\):after\(.*\)/\1\2/g' | reviewdog \
+          -f=diff \
+          -f.diff.strip=0 \
+          -name="isort" \
+          -reporter=github-pr-review \
+          -filter-mode=file \
+          -fail-on-error=false \
+          -level=warning
+
+    - name: mypy
+      env:
+        REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        poetry run mypy --fast-module-lookup . | reviewdog \
+          -f=mypy \
+          -name="mypy" \
+          -reporter=github-pr-review \
+          -filter-mode=file \
+          -fail-on-error=false \
+          -level=warning
+
+    - name: pytest
+      run: poetry run pytest --junitxml report.xml --cov src --cov-report term-missing:skip-covered | tee coverage.txt
+      continue-on-error: true
+
+    - name: report coverage
+      uses: MishaKav/pytest-coverage-comment@main
+      with:
+        pytest-coverage-path: coverage.txt
+        junitxml-path: report.xml
