@@ -54,25 +54,21 @@ jobs:
         REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         echo -n ${{ steps.diff.outputs.diff }} | xargs -d "," -i poetry run flake8 --max-line-length=120 --ignore E203,E501,W503 --exclude .mypy_cache,.pytest_cache,.venv,htmlcov,.coverage {} | reviewdog -f=flake8 -name="flake8" -reporter=github-pr-review -filter-mode=added -fail-on-error=false -level=warning
-      if: steps.diff.outputs.diff
 
     - name: black
       env:
         REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         echo -n ${{ steps.diff.outputs.diff }} | xargs -d "," -i poetry run black --diff --check {} | reviewdog -f=diff -f.diff.strip=0 -name="black" -reporter=github-pr-review -filter-mode=added -level=warning -fail-on-error=false
-      if: steps.diff.outputs.diff
 
     - name: isort
       env:
         REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         echo -n ${{ steps.diff.outputs.diff }} | xargs -d "," -i poetry run isort --diff --check {} | sed -e 's/\(---.*\):before\(.*\)/\1\2/g' -e 's/\(+++.*\):after\(.*\)/\1\2/g' | reviewdog -f=diff -f.diff.strip=0 -name="isort" -reporter=github-pr-review -filter-mode=added -level=warning -fail-on-error=false
-      if: steps.diff.outputs.diff
 
     - name: mypy
       env:
         REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         echo -n ${{ steps.diff.outputs.diff }} | xargs -d "," -i poetry run mypy --fast-module-lookup {} | reviewdog -efm="%f:%l:%c: %t%*[^:]: %m" -name="mypy" -reporter=github-pr-review -filter-mode=added -level=warning -fail-on-error=false
-      if: steps.diff.outputs.diff
