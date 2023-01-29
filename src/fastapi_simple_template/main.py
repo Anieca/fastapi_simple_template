@@ -5,7 +5,7 @@ from fastapi_simple_template.container import Container
 from fastapi_simple_template.routers import router
 
 title = "FastAPI Simple Templete"
-version = "2023.01.21.0"
+version = "2023.01.29.0"
 
 container = Container()
 
